@@ -1,64 +1,47 @@
 function getTransfers(participants) {
-
     const allSpendings = participants.reduce(
         (sum, currentValue) => sum + currentValue.paid,
         0
     );
-
     const count = participants.reduce(
         (sum, currentValue) => sum + currentValue.count,
         0
     );
-
-    const share = allSpendings / count;
-    console.log(share);
-    let paidMore = [];
-    let paidLess = [];
+    const share = allSpendings / count; // Сумма участия на одного человека
+    let paidMore = []; // Люди или группы людей с антидолгом
+    let paidLess = []; // Люди или груупы людей с долгом
 
     for (person of participants) {
         person.dolg = share*person.count - person.paid;
-        // console.log(person);
         if (person.dolg < 0) {
             paidMore.push(person);
         } else {
             paidLess.push(person)
         }
     }
-
-    paidLess = paidLess.sort((a, b) => b.dolg - a.dolg);
-    paidMore = paidMore.sort((a, b) => a.dolg - b.dolg);
-
-    console.log(paidLess);
-    console.log(paidMore);
-
+    paidLess = paidLess.sort((a, b) => b.dolg - a.dolg); // Сортировка по убыванию долга
+    paidMore = paidMore.sort((a, b) => a.dolg - b.dolg); // Сортировка по убыванию антидолга
     const transfers = [];
-    let i = 0;
-    let j = 0;
+    let i = 0, j = 0, paidLessName, paidMoreName, remainder, paid, roundedPaid; // скок осталось от долга
     while (i < paidLess.length && j < paidMore.length) {
-        const paidLessName = paidLess[i].name;
-        const paidMoreName = paidMore[j].name;
-        let remainder = paidLess[i].dolg + paidMore[j].dolg;
-        let paid;
-        if (remainder > 0) {
+        paidLessName = paidLess[i].name;
+        paidMoreName = paidMore[j].name;
+        remainder = paidLess[i].dolg + paidMore[j].dolg; // скок осталось от вернуть текущему антидолжнику (со знаком минус) 
+        if (remainder > 0) { // случай, когда ему вернули больше, чем надо
             paid = paidLess[i].dolg - remainder;
             paidLess[i].dolg = remainder;
             j++;
-        } else {
+        } else { // случай, когда антидолжнику вернули не всё, что нужно
             paid = paidLess[i].dolg;
             paidMore[j].dolg = remainder;
             i++;
         }
-
-        let roundedPaid = Math.round(paid)
+        roundedPaid = Math.round(paid);
         if (roundedPaid > 0) {
-            transfers.push({ from: paidLessName, to: paidMoreName, pay: roundedPaid });
+            transfers.push({ from: paidLessName, to: paidMoreName, pay: roundedPaid }); // запись операции
         }
-        // console.log(paidLess);
-        // console.log(paidMore);
     }
     console.log(`Всего потрачено: ${allSpendings}`);
-    // console.log(participants.length);
-    // console.log(count);
     return transfers;
 }
 
